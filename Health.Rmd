@@ -6,7 +6,7 @@ output:
 library(readxl)
 
 ## read excel file 
-data = read_excel("E:/Courses/Data_Science _Master's_Program/R_Programming/Project/HospitalCosts/HospitalCosts.xlsx")
+data = read_excel("HospitalCosts.xlsx")
 
 ## checking top 6 data
 head(data)
