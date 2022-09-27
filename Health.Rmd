@@ -1,0 +1,96 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+library(readxl)
+
+## read excel file 
+data = read_excel("E:/Courses/Data_Science _Master's_Program/R_Programming/Project/HospitalCosts/HospitalCosts.xlsx")
+
+## checking top 6 data
+head(data)
+
+names(data)
+
+str(data)
+
+## find all cols with NA
+
+sum(is.na(data))
+
+apply(data,2,FUN = function(x){sum(is.na(x))})
+
+summary(data)
+table(data$AGE)
+table(data$FEMALE)
+table(data$LOS)
+table(data$RACE)
+table(data$APRDRG)
+summary(data$LOS)
+
+## Remove Incorrect Data
+data1 <- data[data$LOS!=0,]
+table(data1$LOS)
+summary(data1$LOS)
+
+## Capping LOS
+data1$LOS[data1$LOS>4] <- 5
+table(data1$LOS)
+summary(data1$LOS)
+
+## Race
+table(data1$RACE)
+data1$RACE1= ifelse(data1$RACE==1,1,0)
+table(data1$RACE1)                                              
+
+##Missing Values
+apply(data1,2,FUN = function(x){sum(is.na(x))})
+table(data$RACE)
+data1$RACE1[is.na(data1$RACE1)]=1
+table(data1$RACE1)
+
+##To record the patient statistics, the agency wants to find the age category of people who frequently visit the hospital and has the maximum expenditure.
+summary(as.factor(data1$AGE))
+max(table(data1$AGE))
+which.max(table(data1$AGE))
+age <- aggregate(TOTCHG ~ AGE, data = data1,sum)
+age
+max(age)
+
+## In order of severity of the diagnosis and treatments and to find out the expensive treatments, the agency wants to find the diagnosis-related group that has maximum hospitalization and expenditure.
+drg <- as.factor(data$APRDRG)
+summary(drg)
+which.max(summary(drg))
+dd <- aggregate(TOTCHG ~ APRDRG, FUN = sum, data = data1)
+dd
+dd[which.max(dd$TOTCHG),]
+
+##To make sure that there is no malpractice, the agency needs to analyze if the race of the patient is related to the hospitalization costs.
+data1 <- na.omit(data1)
+table(data1$RACE)
+data1$RACE<-as.factor(data1$RACE) 
+m<-aov(TOTCHG~RACE,data = data1) 
+m
+summary(m)  
+####from the summary we can see that the F value is very low and P value is very high which means that there is no direct reation between race and hospital cost
+
+##To properly utilize the costs, the agency has to analyze the severity of the hospital costs by age and gender for the proper allocation of resources.
+data1$FEMALE <- as.factor(data1$FEMALE)
+model <- lm(TOTCHG~AGE+FEMALE, data = data1)
+model
+summary(model)
+summary(data1$FEMALE)
+
+##Since the length of stay is the crucial factor for inpatients, the agency wants to find if the length of stay can be predicted from age, gender, and race.
+data1$RACE <- as.factor(data1$RACE)
+model1 <- lm(LOS~AGE+FEMALE+RACE, data = data1)
+model1
+summary(model1)
+#### the p values of all the observations are high thus suggesting that there is no linear relationship between them. We cannot predict the LOS.
+
+##To perform a complete analysis, the agency wants to find the variable that mainly affects hospital costs.
+model2 <- lm(TOTCHG~AGE+FEMALE+LOS+RACE+APRDRG, data = data1)
+model2
+summary(model2)
+#### AGE and LOS effects the cost
